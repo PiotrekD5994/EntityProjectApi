@@ -1,6 +1,7 @@
 ﻿using EntityProject.Dto;
 using EntityProject.Model;
 using EntityProject.UserHelper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -22,6 +23,7 @@ namespace EntityProject.Controllers
 
         // Endpoint to register a new user.
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("Register")]
         public async Task<IActionResult> Register(UserDto request)
         {
@@ -77,10 +79,21 @@ namespace EntityProject.Controllers
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, "Admin"),
-                new Claim(ClaimTypes.Role, "User"),
+                new Claim(ClaimTypes.Name, user.Username ?? string.Empty)
             };
+
+            // Ensure every user gets the "User" role by default
+            if (!user.Roles.Contains("User"))
+            {
+                user.Roles.Add("User");
+            }
+
+            // Add the roles from the user's Roles property to the token claims
+            foreach (var role in user.Roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
             var token = new JwtSecurityToken(
