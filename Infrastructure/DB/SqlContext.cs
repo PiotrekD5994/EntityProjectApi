@@ -15,9 +15,13 @@ namespace Entity.Infrastructure.DB
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            base.OnConfiguring(optionsBuilder);
             optionsBuilder.UseSqlServer(_sqlSettings.ConnectionString, sqlServerOptions => sqlServerOptions.CommandTimeout(5 * 60));
         }
         public DbSet<User> Users { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            
+        }
     }
 }
