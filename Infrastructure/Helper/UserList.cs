@@ -1,4 +1,5 @@
-﻿using EntityProject.Model;
+﻿using BCrypt.Net;
+using EntityProject.Model;
 using System.Collections.Concurrent;
 
 namespace EntityProject.UserHelper

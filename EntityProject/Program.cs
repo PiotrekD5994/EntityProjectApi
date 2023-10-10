@@ -1,3 +1,4 @@
+using Entity.Infrastructure.DB;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -11,6 +12,8 @@ builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddDbContext<SqlContext>();
 // Configure Swagger for the application.
 builder.Services.AddSwaggerGen(options =>
 {
@@ -28,6 +31,7 @@ builder.Services.AddSwaggerGen(options =>
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
+
 // Configure JWT authentication for the application.
 builder.Services.AddAuthentication().AddJwtBearer(options =>
 {
@@ -42,6 +46,8 @@ builder.Services.AddAuthentication().AddJwtBearer(options =>
             // Fetch the secret key from the configuration.
             builder.Configuration.GetSection("AppSettings:Token").Value!))
     };
+
+builder.Services.Configure<SqlSettings>(builder.Configuration.GetSection("Connection"));
 
     options.Events = new JwtBearerEvents
     {
