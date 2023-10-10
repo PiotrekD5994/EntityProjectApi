@@ -1,12 +1,13 @@
-﻿using EntityProject.Dto;
+﻿
 using EntityProject.Model;
-using EntityProject.UserHelper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using EntityProject.UserHelper;
+using EntityProject.Dto;
 
 namespace EntityProject.Controllers
 {
