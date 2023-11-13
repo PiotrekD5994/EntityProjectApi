@@ -50,5 +50,38 @@ namespace Entity.Infrastructure.Helper
             }
             return result;
         }
+        public async Task<List<T>> GetDataFromQueryWithSqlValue<T>(string query, List<SqlParameter> parameters)
+        {
+            var result = new List<T>();
+            using (var connection = new SqlConnection(_context.Database.GetDbConnection().ConnectionString))
+            {
+                await connection.OpenAsync();
+                using (var command = new SqlCommand(query, connection))
+                {
+                    // Dodaj parametry do zapytania.
+                    foreach (var param in parameters)
+                    {
+                        command.Parameters.Add(param);
+                    }
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var obj = Activator.CreateInstance<T>();
+                            foreach (var prop in typeof(T).GetProperties())
+                            {
+                                if (!reader.IsDBNull(reader.GetOrdinal(prop.Name)))
+                                {
+                                    prop.SetValue(obj, reader[prop.Name]);
+                                }
+                            }
+                            result.Add(obj);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
     }
 }
