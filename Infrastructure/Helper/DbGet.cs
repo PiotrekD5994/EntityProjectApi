@@ -1,12 +1,6 @@
 ﻿using Entity.Infrastructure.DB;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Entity.Infrastructure.Helper
 {
@@ -19,67 +13,62 @@ namespace Entity.Infrastructure.Helper
             _context = context;
         }
 
-        public async Task<List<T>> GetDataFromQuery<T>(string query)
-        {
-            var result = new List<T>();
-            using (var connection = new SqlConnection(_context.Database.GetDbConnection().ConnectionString))
-            {
-                await connection.OpenAsync();
-                using (var command = new SqlCommand(query, connection))
-                {
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            // Dynamically create an instance of the specified type (T).
-                            var obj = Activator.CreateInstance<T>();
-                            // Iterate over all properties of the specified type (T).
-                            foreach (var prop in typeof(T).GetProperties())
-                            {
-                                // Check if the current SQL column's value is not DBNull.
-                                if (!reader.IsDBNull(reader.GetOrdinal(prop.Name)))
-                                {
-                                    // Set the property value of the created object based on the data from the SQL result.
-                                    prop.SetValue(obj, reader[prop.Name]);
-                                }
-                            }
-                            result.Add(obj);
-                        }
-                    }
-                }
-            }
-            return result;
-        }
         public async Task<List<T>> GetDataFromQueryWithSqlValue<T>(string query, List<SqlParameter> parameters)
         {
             var result = new List<T>();
-            using (var connection = new SqlConnection(_context.Database.GetDbConnection().ConnectionString))
-            {
-                await connection.OpenAsync();
-                using (var command = new SqlCommand(query, connection))
-                {
-                    // Dodaj parametry do zapytania.
-                    foreach (var param in parameters)
-                    {
-                        command.Parameters.Add(param);
-                    }
+            var connection = new SqlConnection(_context.Database.GetDbConnection().ConnectionString);
 
-                    using (var reader = await command.ExecuteReaderAsync())
+            await connection.OpenAsync();
+            var command = new SqlCommand(query, connection);
+
+            foreach (var param in parameters)
+            {
+                command.Parameters.Add(param);
+            }
+
+            var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var obj = Activator.CreateInstance<T>();
+                foreach (var prop in typeof(T).GetProperties())
+                {
+                    if (!reader.IsDBNull(reader.GetOrdinal(prop.Name)))
                     {
-                        while (await reader.ReadAsync())
-                        {
-                            var obj = Activator.CreateInstance<T>();
-                            foreach (var prop in typeof(T).GetProperties())
-                            {
-                                if (!reader.IsDBNull(reader.GetOrdinal(prop.Name)))
-                                {
-                                    prop.SetValue(obj, reader[prop.Name]);
-                                }
-                            }
-                            result.Add(obj);
-                        }
+                        prop.SetValue(obj, reader[prop.Name]);
                     }
                 }
+                result.Add(obj);
+            }
+            return result;
+        }
+        public async Task<List<T>> GetDataFromQuery<T>(string query)
+        {
+            var result = new List<T>();
+
+            var connection = new SqlConnection(_context.Database.GetDbConnection().ConnectionString);
+
+            await connection.OpenAsync();
+
+            var command = new SqlCommand(query, connection);
+
+            var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                // Dynamically create an instance of the specified type (T).
+                var obj = Activator.CreateInstance<T>();
+                // Iterate over all properties of the specified type (T).
+                foreach (var prop in typeof(T).GetProperties())
+                {
+                    // Check if the current SQL column's value is not DBNull.
+                    if (!reader.IsDBNull(reader.GetOrdinal(prop.Name)))
+                    {
+                        // Set the property value of the created object based on the data from the SQL result.
+                        prop.SetValue(obj, reader[prop.Name]);
+                    }
+                }
+                result.Add(obj);
             }
             return result;
         }
