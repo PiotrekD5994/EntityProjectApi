@@ -31,7 +31,7 @@ namespace EntityProject.Controllers
             // Check if the username already exists in the UserList.
             if (UserList.IsUserExist(request.Username))
             {
-                return BadRequest("Username is already taken.");
+                return BadRequest(new { message = "Username is already taken." });
             }
 
             // Hash the provided password.
@@ -61,13 +61,13 @@ namespace EntityProject.Controllers
             // If user does not exist, return an error.
             if (user == null)
             {
-                return BadRequest("User not found");
+                return BadRequest(new { message = "User not found" });
             }
 
             // Verify the provided password with the hashed password in the user object.
             if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
-                return BadRequest("Wrong Password");
+                return BadRequest(new { message = "Wrong Password" });
             }
 
             // Create JWT token for the authenticated user.
